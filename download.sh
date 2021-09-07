@@ -2,7 +2,7 @@
 URL=http://images.cocodataset.org/annotations/annotations_trainval2014.zip
 ZIP_FILE=./data/coco_trainval_annotation.zip
 mkdir -p ./data
-wget -N $URL $ZIP_FILE
+wget $URL -P $ZIP_FILE
 unzip $ZIP_FILE -d ./data/coco/annotations
 rm $ZIP_FILE
 
