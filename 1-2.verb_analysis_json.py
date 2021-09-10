@@ -79,7 +79,7 @@ if __name__ == '__main__':
            'lay',
            'eat_instr']
 
-    json_file = pd.read_json('./all_pd.json')
+    json_file = pd.read_json('./all_vcoco_pd.json')
     output_file = pd.DataFrame(index=ind)
 
     train_json_file = json_file[json_file['type']=='train']
@@ -114,22 +114,4 @@ if __name__ == '__main__':
 
 
 
-
-    # output_file['Num_train_verb'] = getVerbCounts(train_json_file)
-
-    # print(getVerbList(train_json_file))
-
-    # print(getVerbCounts(train_json_file))
-    # print(getVC(train_json_file, 'verb'))
-    # print(getVC(val_json_file, 'verb'))
-    # print(getVC(test_json_file, 'verb'))
-
     print(output_file)
-    output_file.to_csv('./all.csv')
-
-    # verb_counts(train_json_file)
-    # verb_counts(val_json_file)
-    # verb_counts(test_json_file)
-
-
-    # print('True')

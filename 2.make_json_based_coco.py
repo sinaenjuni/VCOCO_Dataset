@@ -326,44 +326,114 @@ if __name__ == '__main__':
 
     coco_classes = COCO_train.cats
 
+    print(coco_classes)
+
+
+    output_file = pd.DataFrame()
+    for idx, (k, v) in enumerate(COCO_train.imgs.items()):
+        print(idx)
+        # if idx == 2:
+        #     break
+        imgID = k
+        annIDs = COCO_train.getAnnIds(k)
+        anns = COCO_train.loadAnns(annIDs)
+        type = 'train'
+        # print(v['coco_url'])
+
+        # f = io.imread(v['coco_url'])
+        # img = Image.fromarray(f)
+        # plt.imshow(img)
+        # plt.show()
+
+        # print(imgID)
+        for ann in anns:
+            # print(ann)
+            catID = ann['category_id']
+            super_classes = coco_classes[catID]['supercategory']
+            classes = coco_classes[catID]['name']
+            bbox = ann['bbox']
+
+            # print(superCat, cat)
+
+            output_file = output_file.append({'type': type,
+                                              'imgID': str(imgID),
+                                              'bbox': bbox,
+                                              'super_class': super_classes,
+                                              'coco_class': classes,
+                                              }, ignore_index=True)
+
+    for idx, (k, v) in enumerate(COCO_test.imgs.items()):
+        print(idx)
+        # if idx == 2:
+        #     break
+        imgID = k
+        annIDs = COCO_test.getAnnIds(k)
+        anns = COCO_test.loadAnns(annIDs)
+        type = 'test'
+        # print(v['coco_url'])
+
+        # f = io.imread(v['coco_url'])
+        # img = Image.fromarray(f)
+        # plt.imshow(img)
+        # plt.show()
+
+        # print(imgID)
+        for ann in anns:
+            # print(ann)
+            catID = ann['category_id']
+            super_classes = coco_classes[catID]['supercategory']
+            classes = coco_classes[catID]['name']
+            bbox = ann['bbox']
+
+            # print(superCat, cat)
+
+            output_file = output_file.append({'type': type,
+                                              'imgID': str(imgID),
+                                              'bbox': bbox,
+                                              'super_class': super_classes,
+                                              'coco_class': classes,
+                                              }, ignore_index=True)
+
+    # print(output_file)
+    output_file.to_json('./all_coco_pd.json')
 
     # print(COCO_train.imgs)
 
 
 
     # print(len(COCO_train.imgs))
-    print(coco_classes)
-    # COCO_anno_val_path = Path('./data/annotations/coco/instances_val2014.json')
-    # COCO_val = COCO(COCO_anno_val_path)
-
-
-    VCOCO_anno_train = Path('./data/annotations/vcoco/train_annotations.json')
-    with open(VCOCO_anno_train, 'r') as f:
-        VCOCO_anno_train_file = json.load(f)
-    print(len(VCOCO_anno_train_file))
-
-    VCOCO_anno_val = Path('./data/annotations/vcoco/val_annotations.json')
-    with open(VCOCO_anno_val, 'r') as f:
-        VCOCO_anno_val_file = json.load(f)
-    print(len(VCOCO_anno_val_file))
-
-
-    VCOCO_anno_test = Path('./data/annotations/vcoco/test_annotations.json')
-    with open(VCOCO_anno_test, 'r') as f:
-        VCOCO_anno_test_file = json.load(f)
-    print(len(VCOCO_anno_test_file))
-
-
-    VCOCO_all_pd = pd.DataFrame()
-
-    VCOCO_all_pd = getPD('train', VCOCO_all_pd, COCO_train, VCOCO_anno_train_file)
-    VCOCO_all_pd = getPD('val', VCOCO_all_pd, COCO_train, VCOCO_anno_val_file)
-    VCOCO_all_pd = getPD('test', VCOCO_all_pd, COCO_test, VCOCO_anno_test_file)
-
-    print(VCOCO_all_pd['type'].unique())
-
-
-    VCOCO_all_pd.to_json('./all_pd.json')
+    # print(coco_classes)
+    # # COCO_anno_val_path = Path('./data/annotations/coco/instances_val2014.json')
+    # # COCO_val = COCO(COCO_anno_val_path)
+    #
+    #
+    # VCOCO_anno_train = Path('./data/annotations/vcoco/train_annotations.json')
+    # with open(VCOCO_anno_train, 'r') as f:
+    #     VCOCO_anno_train_file = json.load(f)
+    # print(len(VCOCO_anno_train_file))
+    #
+    # VCOCO_anno_val = Path('./data/annotations/vcoco/val_annotations.json')
+    # with open(VCOCO_anno_val, 'r') as f:
+    #     VCOCO_anno_val_file = json.load(f)
+    # print(len(VCOCO_anno_val_file))
+    #
+    #
+    # VCOCO_anno_test = Path('./data/annotations/vcoco/test_annotations.json')
+    # with open(VCOCO_anno_test, 'r') as f:
+    #     VCOCO_anno_test_file = json.load(f)
+    # print(len(VCOCO_anno_test_file))
+    #
+    #
+    # VCOCO_all_pd = pd.DataFrame()
+    #
+    # VCOCO_all_pd = getPD('train', VCOCO_all_pd, COCO_train, VCOCO_anno_train_file)
+    # VCOCO_all_pd = getPD('val', VCOCO_all_pd, COCO_train, VCOCO_anno_val_file)
+    # VCOCO_all_pd = getPD('test', VCOCO_all_pd, COCO_test, VCOCO_anno_test_file)
+    #
+    # print(VCOCO_all_pd['type'].unique())
+    #
+    #
+    # VCOCO_all_pd.to_json('./all_pd.json')
 
 
 

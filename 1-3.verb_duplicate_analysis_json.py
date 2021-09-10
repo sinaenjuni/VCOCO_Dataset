@@ -52,18 +52,8 @@ def getVerbList(json_file):
     # print(pd_verb_count)
     # pd_verb_count.to_csv('./train_verb_counts.csv')
 
-def getObjMeanArea(json_file):
-    objs = json_file['coco_class'].unique()
-
-    ret = pd.Series()
-    for obj in objs:
-        ret[obj] = json_file[json_file['coco_class']==obj]['area'].mean()
-
-    return ret
-
 
 if __name__ == '__main__':
-    area = lambda x: (x[2] - x[0]) * (x[3] - x[1]) if len(x) != 0 else []
     ind = ['skateboard',
            'surf',
            'snowboard',
@@ -89,51 +79,45 @@ if __name__ == '__main__':
            'lay',
            'eat_instr']
 
-    json_file = pd.read_json('./all_vcoco_pd.json')
-    # output_file = pd.DataFrame(index=ind)
+    json_file = pd.read_json('./all_pd.json')
+    output_file = pd.DataFrame(index=ind)
 
     train_json_file = json_file[json_file['type']=='train']
     val_json_file = json_file[json_file['type']=='val']
     test_json_file = json_file[json_file['type']=='test']
     trainval_json_file = pd.concat([train_json_file, val_json_file])
 
-    output_file = pd.DataFrame(index=trainval_json_file['coco_class'].unique())
-
-    print(len(train_json_file['coco_class'].unique()))
-    print(len(val_json_file['coco_class'].unique()))
-    print(len(test_json_file['coco_class'].unique()))
-    print(len(trainval_json_file['coco_class'].unique()))
+    for _ind in ind:
+        tverb = trainval_json_file[trainval_json_file['verb']==_ind]
+        non_duplicate = tverb.drop_duplicates(subset='imgID')
+        print( _ind, len(non_duplicate) )
 
 
-    train_json_file['area'] = train_json_file['obbox'].apply(area)
-    val_json_file['area'] = val_json_file['obbox'].apply(area)
-    test_json_file['area'] = test_json_file['obbox'].apply(area)
-    trainval_json_file['area'] = trainval_json_file['obbox'].apply(area)
+    # print(train_json_file)
+    # print(val_json_file)
+    # print(trainval_json_file)
+
+    # output_file['Train'] = getVC(train_json_file, 'verb')
+    # output_file['Val'] = getVC(val_json_file, 'verb')
+    # output_file['Test'] = getVC(test_json_file, 'verb')
+    # output_file['Trainval'] = getVC(trainval_json_file, 'verb')
+    #
+    # output_file['Num_train_verb'] = getVerbCounts(train_json_file)
+    # output_file['Num_val_verb'] = getVerbCounts(val_json_file)
+    # output_file['Num_test_verb'] = getVerbCounts(test_json_file)
+    # output_file['Num_trainval_verb'] = getVerbCounts(trainval_json_file)
+    #
+    # output_file['List_train_verb'] = getVerbList(train_json_file)
+    # output_file['List_val_verb'] = getVerbList(val_json_file)
+    # output_file['List_test_verb'] = getVerbList(test_json_file)
+    # output_file['List_trainval_verb'] = getVerbList(trainval_json_file)
+    #
+    # output_file['Num_train_verb_per_classes'] = output_file['Train'] / output_file['Num_train_verb']
+    # output_file['Num_val_verb_per_classes'] = output_file['Val'] / output_file['Num_val_verb']
+    # output_file['Num_test_verb_per_classes'] = output_file['Test'] / output_file['Num_test_verb']
+    # output_file['Num_trainval_verb_per_classes'] = output_file['Trainval'] / output_file['Num_trainval_verb']
 
 
-    output_file['Num_train_classes'] = pd.Series(train_json_file['coco_class'].value_counts())
-    output_file['Train_area'] = getObjMeanArea(train_json_file)
-
-    output_file['Num_val_classes'] = val_json_file['coco_class'].value_counts()
-    output_file['Val_area'] = getObjMeanArea(val_json_file)
 
 
-    output_file['Num_test_classes'] = test_json_file['coco_class'].value_counts()
-    output_file['Test_area'] = getObjMeanArea(test_json_file)
-
-
-    output_file['Num_trainval_classes'] = trainval_json_file['coco_class'].value_counts()
-    output_file['Trainval_area'] = getObjMeanArea(trainval_json_file)
-
-
-
-
-    print(output_file)
-    # output_file.to_csv('./all_obj.csv')
-
-    # verb_counts(train_json_file)
-    # verb_counts(val_json_file)
-    # verb_counts(test_json_file)
-
-
-    # print('True')
+    # print(output_file)
