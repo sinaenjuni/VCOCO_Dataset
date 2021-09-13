@@ -53,6 +53,16 @@ def getVerbList(json_file):
     # pd_verb_count.to_csv('./train_verb_counts.csv')
 
 
+def getRmDuplicate(json_file, ind):
+    ret = {}
+    for _ind in ind:
+        tverb = json_file[json_file['verb'] == _ind]
+        # non_duplicate = tverb.drop_duplicates(subset='imgID')
+        non_duplicate = tverb
+        ret[_ind] = len(non_duplicate)
+    return pd.Series(ret)
+
+
 if __name__ == '__main__':
     ind = ['skateboard',
            'surf',
@@ -79,7 +89,7 @@ if __name__ == '__main__':
            'lay',
            'eat_instr']
 
-    json_file = pd.read_json('./all_pd.json')
+    json_file = pd.read_json('./all_vcoco_pd.json')
     output_file = pd.DataFrame(index=ind)
 
     train_json_file = json_file[json_file['type']=='train']
@@ -87,12 +97,32 @@ if __name__ == '__main__':
     test_json_file = json_file[json_file['type']=='test']
     trainval_json_file = pd.concat([train_json_file, val_json_file])
 
-    for _ind in ind:
-        tverb = trainval_json_file[trainval_json_file['verb']==_ind]
-        non_duplicate = tverb.drop_duplicates(subset='imgID')
-        print( _ind, len(non_duplicate) )
+
+    output_file['Train'] = getRmDuplicate(train_json_file, ind)
+    output_file['Val'] = getRmDuplicate(val_json_file, ind)
+    output_file['Test'] = getRmDuplicate(test_json_file, ind)
+    output_file['Trainval'] = getRmDuplicate(trainval_json_file, ind)
+    print(output_file)
 
 
+
+    # for _ind in ind:
+    #     tverb = val_json_file[val_json_file['verb']==_ind]
+    #     non_duplicate = tverb.drop_duplicates(subset='imgID')
+    #     print( _ind, len(non_duplicate) )
+    #
+    # for _ind in ind:
+    #     tverb = test_json_file[test_json_file['verb']==_ind]
+    #     non_duplicate = tverb.drop_duplicates(subset='imgID')
+    #     print( _ind, len(non_duplicate) )
+    #
+    #
+    # for _ind in ind:
+    #     tverb = trainval_json_file[trainval_json_file['verb']==_ind]
+    #     non_duplicate = tverb.drop_duplicates(subset='imgID')
+    #     print( _ind, len(non_duplicate) )
+    #
+    #
     # print(train_json_file)
     # print(val_json_file)
     # print(trainval_json_file)

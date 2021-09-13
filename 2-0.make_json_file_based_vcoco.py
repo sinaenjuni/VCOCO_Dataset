@@ -363,7 +363,7 @@ if __name__ == '__main__':
     print(VCOCO_all_pd['type'].unique())
 
 
-    VCOCO_all_pd.to_json('./all_pd.json')
+    VCOCO_all_pd.to_json('./all_vcoco_pd.json')
 
 
 
