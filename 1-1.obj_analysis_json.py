@@ -107,7 +107,7 @@ if __name__ == '__main__':
     # print(train_json_file[train_json_file['coco_class'] == 'spoon'])
     for obj in eat_instr_objs:
         cls = train_json_file[train_json_file['coco_class']==obj]
-        cls = cls.drop_duplicates(subset=['imgID'])
+        # cls = cls.drop_duplicates(subset=['imgID'])
         print(obj, len(cls))
 
     print(len(train_json_file['coco_class']))
