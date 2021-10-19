@@ -29,30 +29,28 @@ def getOutterPoints(obbox, pbbox):
 
     return (xmin, ymin, xmax, ymax)
 
-def getTargetPoints(img, bbox, target_size=400):
+def getCneterPoints(bbox):
     xmin, ymin, xmax, ymax = bbox
 
-    print(img.size)
-    print(xmin, ymin, xmax, ymax)
-    w=(xmax-xmin)
-    h=(ymax-ymin)
-    for i in range(sample):
-        x1 = randrange(0, x - matrix)
-        y1 = randrange(0, y - matrix)
-        sample_list.append(img.crop((x1, y1, x1 + matrix, y1 + matrix)))
+    center_x = (xmax - xmin) / 2 + xmin
+    center_y = (ymax - ymin) / 2 + ymin
 
-    if w < target_size:
-        margin_w = target_size - w
-        xmin = xmin - margin_w/2
-        xmax = xmax + margin_w/2
+    return (center_x, center_y)
 
-    if h < target_size:
-        margin_h = target_size - h
-        ymin = ymin - margin_h/2
-        ymax = ymax + margin_h/2
+def getTargetBound(center, img, target_size):
+    center_x, center_y = center
+    width, height = img.size
+    retxmin = center_x - (target_size//2) if center_x - (target_size//2) > 0 else 0
+    retymin = center_y - (target_size//2) if center_y - (target_size//2) > 0 else 0
+    retxmax = center_x + (target_size//2) if center_x + (target_size//2) > width else width
+    retymax = center_y + (target_size//2) if center_y + (target_size//2) > height else height
 
-    print(xmin, ymin, xmax, ymax)
-    return (xmin, ymin, xmax, ymax)
+    retxmin = int(retxmin)
+    retymin = int(retymin)
+    retxmax = int(retxmax)
+    retymax = int(retymax)
+
+    return (retxmin, retymin, retxmax, retymax)
 
 
 
@@ -79,21 +77,41 @@ for target in list(target_cats.itertuples())[:1]:
     print(imgID, verb, coco_class, obbox, pbbox) # minmax
 
     img = Image.open(getIMG(imgID))
+
+    outter = getOutterPoints(obbox, pbbox)
+    center = getCneterPoints(outter)
+    target = getTargetBound(center, img, target_size=400)
+
+    for i in range(10):
+        xmin = randrange(target[0], target[2])
+        ymin = randrange(target[1], target[3])
+        xmax = xmin + 400
+        ymax = ymin + 400
+        print(xmin, ymin, xmax, ymax)
+        # print(xmax - xmin, ymax - ymin)
+        croped_img = img.crop((xmin,ymin,xmax,ymax))
+        plt.imshow(croped_img)
+        plt.show()
+
     draw = ImageDraw.Draw(img)
     draw.rectangle((obbox), outline=(255, 0, 0), width=3)
     draw.rectangle((pbbox), outline=(0, 0, 255), width=3)
 
+    draw.ellipse((center[0]-5, center[1]-5,  center[0]+5, center[1]+5), fill='red', outline='blue')
+
     plt.imshow(img)
     plt.show()
 
-    outter = getOutterPoints(obbox, pbbox)
-
-    outter = getTargetPoints(img, outter, target_size=400)
 
 
-    # center_point = pbbox+obbox
-    croped_img = img.crop(outter)
-    plt.imshow(croped_img)
-    plt.show()
+    # for i in range(10):
+    #     xmin = randrange(0, outter[3])
+    #     ymin = randrange(0, outter[4])
+    #     xmax = xmin + 400
+    #     ymax = ymin + 400
+    # # center_point = pbbox+obbox
+    #     croped_img = img.crop((xmin,ymin,xmax,ymax))
+    #     plt.imshow(croped_img)
+    #     plt.show()
 
     # print(getIMG(imgID))
