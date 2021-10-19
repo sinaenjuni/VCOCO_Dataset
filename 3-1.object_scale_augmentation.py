@@ -1,11 +1,10 @@
 
-
 import pandas as pd
 from pathlib import Path
 from PIL import Image
 from PIL import ImageDraw
 import matplotlib.pyplot as plt
-
+from random import randrange
 
 json_file = pd.read_json('./all_vcoco_pd.json')
 img_path = Path('./data/images/train2014')
@@ -30,13 +29,31 @@ def getOutterPoints(obbox, pbbox):
 
     return (xmin, ymin, xmax, ymax)
 
-def getTargetPoints(bbox, target_size=400):
+def getTargetPoints(img, bbox, target_size=400):
     xmin, ymin, xmax, ymax = bbox
 
-    w=xmax-xmin
-    h=ymax-ymin
+    print(img.size)
+    print(xmin, ymin, xmax, ymax)
+    w=(xmax-xmin)
+    h=(ymax-ymin)
+    for i in range(sample):
+        x1 = randrange(0, x - matrix)
+        y1 = randrange(0, y - matrix)
+        sample_list.append(img.crop((x1, y1, x1 + matrix, y1 + matrix)))
 
-    if w
+    if w < target_size:
+        margin_w = target_size - w
+        xmin = xmin - margin_w/2
+        xmax = xmax + margin_w/2
+
+    if h < target_size:
+        margin_h = target_size - h
+        ymin = ymin - margin_h/2
+        ymax = ymax + margin_h/2
+
+    print(xmin, ymin, xmax, ymax)
+    return (xmin, ymin, xmax, ymax)
+
 
 
 print(train_json_file['verb'].unique())
@@ -51,7 +68,7 @@ print(target_cats.columns)
 # print(getIMG('467411'))
 
 
-for target in list(target_cats.itertuples())[:5]:
+for target in list(target_cats.itertuples())[:1]:
     imgID = target.imgID
     coco_class = target.coco_class
     obbox = target.obbox
@@ -71,7 +88,7 @@ for target in list(target_cats.itertuples())[:5]:
 
     outter = getOutterPoints(obbox, pbbox)
 
-    outter = getTargetPoints(outter)
+    outter = getTargetPoints(img, outter, target_size=400)
 
 
     # center_point = pbbox+obbox
