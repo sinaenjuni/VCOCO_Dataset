@@ -33,23 +33,42 @@ def getOutterPoints(obbox, pbbox):
 
 def getTargetArea(img, outter, target_size = [400, 400], sample=10):
     width, height = img.size
-    xmin, ymin, xmax, ymax = (int(i) for i in outter)
-
+    xmin, ymin, xmax, ymax = outter
+    start_x, start_y, end_x, end_y = 0,0,0,0
+    is_x = True
+    is_y = True
     w = xmax - xmin
     h = ymax - ymin
 
-    start_x = xmin - (target_size[0] - w) if w < target_size[0] else xmin
-    start_y = ymin - (target_size[1] - h) if h < target_size[1] else ymin
+    if w < target_size[0]:
+        start_x = xmin - (target_size[0] - w)
+        end_x = xmin
+    else:
+        is_x = False
+        crop_xmin = xmin
+        crop_xmax = xmax
+    if h < target_size[1]:
+        start_y = ymin - (target_size[1] - h)
+        end_y = ymin
+    else:
+        is_y = False
+        crop_ymin = ymin
+        crop_ymax = ymax
 
-    if start_x < 0: start_x = 1
-    if start_y < 0: start_y = 1
+    if start_x <= 0:
+        start_x = 0
+    if start_y <= 0:
+        start_y = 0
+    if end_x <= 0:
+        end_x = 1
+    if end_y <= 0:
+        end_y = 1
 
-    end_x = xmin + target_size[0] if w < target_size[0] else xmax
-    end_y = ymin + target_size[1] if h < target_size[1] else ymax
+    if end_x + target_size[0] >= width:
+        end_x = xmin - ((target_size[0] + xmin) - width)
+    if end_y + target_size[1] >= height:
+        end_y = ymin - ((target_size[1] + ymin) - height)
 
-
-    if end_x > width: end_x = width
-    if end_y > height: end_x = height
 
     ret = []
 
@@ -71,22 +90,16 @@ def getTargetArea(img, outter, target_size = [400, 400], sample=10):
     #     if start_y < 0:
     #         start_y = 0
 
+    print(int(start_x), int(start_y), int(end_x), int(end_y))
     for i in range(sample):
-        crop_xmin = randrange(int(start_x), int(end_x))
-        crop_xmax = crop_xmin + target_size[0]
-
-        crop_ymin = randrange(int(start_y), int(end_y))
-        crop_ymax = crop_ymin + target_size[1]
+        if is_x:
+            crop_xmin = randrange(int(start_x)-1, int(end_x)+1)
+            crop_xmax = crop_xmin + target_size[0]
+        if is_y:
+            crop_ymin = randrange(int(start_y)-1, int(end_y)+1)
+            crop_ymax = crop_ymin + target_size[1]
 
         ret += [(crop_xmin, crop_ymin, crop_xmax, crop_ymax)]
-        # print(crop_xmin, crop_ymin, crop_xmax, crop_ymax)
-        # print(crop_xmax - crop_xmin, crop_ymax - crop_ymin)
-
-
-        # print(xmax - xmin, ymax - ymin)
-        # croped_img = img.crop((xmin,ymin,xmax,ymax))
-        # plt.imshow(croped_img)
-        # plt.show()
     return ret
 
 
@@ -141,7 +154,7 @@ print(target_cats.columns)
 # print(getIMG('467411'))
 
 
-for target in list(target_cats.itertuples())[:5]:
+for target in list(target_cats.itertuples()):
     imgID = target.imgID
     coco_class = target.coco_class
     obbox = target.obbox
@@ -152,21 +165,25 @@ for target in list(target_cats.itertuples())[:5]:
     print(imgID, verb, coco_class, obbox, pbbox) # minmax
 
     img = Image.open(getIMG(imgID))
-
+    draw = ImageDraw.Draw(img)
+    draw.rectangle((obbox), outline=(255, 0, 0), width=3)
+    draw.rectangle((pbbox), outline=(0, 0, 255), width=3)
     outter = getOutterPoints(obbox, pbbox)
-    target_area = getTargetArea(img, outter)
+    print(outter)
     center = getCneterPoints(outter)
+    draw.ellipse((center[0]-5, center[1]-5,  center[0]+5, center[1]+5), fill='red', outline='blue')
+
+    # plt.imshow(img)
+    # plt.show()
+
+    target_area = getTargetArea(img, outter)
 
     # target = getTargetBound(center, img, target_size=400)
     # print(target)
 
 
 
-    draw = ImageDraw.Draw(img)
-    draw.rectangle((obbox), outline=(255, 0, 0), width=3)
-    draw.rectangle((pbbox), outline=(0, 0, 255), width=3)
 
-    draw.ellipse((center[0]-5, center[1]-5,  center[0]+5, center[1]+5), fill='red', outline='blue')
 
     # croped_img = img.crop(target)
 
@@ -175,14 +192,14 @@ for target in list(target_cats.itertuples())[:5]:
 
 
     # ret_img = np.concatenate([img, croped_img],axis=1)
-    plt.imshow(img)
-    plt.show()
+    # plt.imshow(img)
+    # plt.show()
 
     for i in target_area:
-        # print(i)
-        croped_img = img.crop(i)
-        plt.imshow(croped_img)
-        plt.show()
+        print(i)
+        # croped_img = img.crop(i)
+        # plt.imshow(croped_img)
+        # plt.show()
 
     # plt.imshow(croped_img)
     # plt.imshow(ret_img)
