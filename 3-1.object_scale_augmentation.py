@@ -19,6 +19,7 @@ train_json_file = json_file[json_file['type'] == 'train']
 val_json_file = json_file[json_file['type'] == 'val']
 test_json_file = json_file[json_file['type'] == 'test']
 
+
 def getOutterPoints(obbox, pbbox):
     oxmin, oymin, oxmax, oymax = obbox
     pxmin, pymin, pxmax, pymax = pbbox
@@ -33,73 +34,55 @@ def getOutterPoints(obbox, pbbox):
 
 def getTargetArea(img, outter, target_size = [400, 400], sample=10):
     width, height = img.size
-    xmin, ymin, xmax, ymax = outter
-    start_x, start_y, end_x, end_y = 0,0,0,0
-    is_x = True
-    is_y = True
-    w = xmax - xmin
-    h = ymax - ymin
+    xmin_bbox, ymin_bbox, xmax_bbox, ymax_bbox = outter
+    width_bbox = xmax_bbox - xmin_bbox
+    height_bbox = ymax_bbox - ymin_bbox
 
-    if w < target_size[0]:
-        start_x = xmin - (target_size[0] - w)
-        end_x = xmin
+    if width_bbox <= target_size[0] and width > target_size[0]:
+        x_min = xmin_bbox - (target_size[0] - width_bbox)
+        x_max = xmin_bbox + target_size[0]
+
+        x_start = 0 if x_min < 0 else x_min
+        x_end = xmin_bbox if x_max < width else xmin_bbox - (x_max - width)  +1
+
+        x_start = int(x_start)
+        x_end = int(x_end)
+
+        if x_start == x_end:
+            x_min_crop = [x_start for i in range(sample)]
+
+        else:
+            x_min_crop = [randrange(x_start, x_end) for i in range(sample)]
+        x_max_crop = [i + target_size[0] for i in x_min_crop]
+
     else:
-        is_x = False
-        crop_xmin = xmin
-        crop_xmax = xmax
-    if h < target_size[1]:
-        start_y = ymin - (target_size[1] - h)
-        end_y = ymin
+        x_min_crop = [xmin_bbox]
+        x_max_crop = [xmax_bbox]
+
+
+    if height_bbox <=  target_size[1] and height > target_size[1]:
+        y_min = ymin_bbox - (target_size[1] - height_bbox)
+        y_max = ymin_bbox + target_size[1]
+
+        y_start = 0 if y_min < 0 else y_min
+        y_end = ymin_bbox if y_max < height else ymin_bbox - (y_max - height) +1
+
+        y_start = int(y_start)
+        y_end = int(y_end)
+
+        if y_start == y_end:
+            y_min_crop = [y_start for i in range(sample)]
+        else:
+            y_min_crop = [randrange(y_start, y_end) for i in range(sample)]
+        y_max_crop = [i + target_size[1] for i in y_min_crop]
     else:
-        is_y = False
-        crop_ymin = ymin
-        crop_ymax = ymax
-
-    if start_x <= 0:
-        start_x = 0
-    if start_y <= 0:
-        start_y = 0
-    if end_x <= 0:
-        end_x = 1
-    if end_y <= 0:
-        end_y = 1
-
-    if end_x + target_size[0] >= width:
-        end_x = xmin - ((target_size[0] + xmin) - width)
-    if end_y + target_size[1] >= height:
-        end_y = ymin - ((target_size[1] + ymin) - height)
-
+        y_min_crop = [ymin_bbox]
+        y_max_crop = [ymax_bbox]
 
     ret = []
+    for xmin, ymin, xmax, ymax in zip(x_min_crop, y_min_crop, x_max_crop, y_max_crop):
+        ret += [(xmin, ymin, xmax, ymax)]
 
-    # if w > target_size[0]:
-    #     start_x = xmin
-    #     target_size[0] = xmax
-    #
-    # if h > target_size[1]:
-    #     start_y = ymin
-    #     target_size[1] = ymax
-    #
-    # if w < target_size[0]:
-    #     start_x = xmin - (target_size[0] - w)
-    #     if start_x < 0:
-    #         start_x = 0
-    #
-    # if h < target_size[1]:
-    #     start_y = ymin - (target_size[1] - h)
-    #     if start_y < 0:
-    #         start_y = 0
-
-    print(int(start_x), int(start_y), int(end_x), int(end_y))
-    for i in range(sample):
-        if is_x:
-            crop_xmin = randrange(int(start_x)-1, int(end_x)+1)
-            crop_xmax = crop_xmin + target_size[0]
-        if is_y:
-            crop_ymin = randrange(int(start_y)-1, int(end_y)+1)
-            crop_ymax = crop_ymin + target_size[1]
-
-        ret += [(crop_xmin, crop_ymin, crop_xmax, crop_ymax)]
     return ret
 
 
@@ -154,7 +137,7 @@ print(target_cats.columns)
 # print(getIMG('467411'))
 
 
-for target in list(target_cats.itertuples()):
+for target in list(target_cats.itertuples())[:4]:
     imgID = target.imgID
     coco_class = target.coco_class
     obbox = target.obbox
@@ -162,21 +145,26 @@ for target in list(target_cats.itertuples()):
     super_class = target.super_class
     verb = target.verb
 
-    print(imgID, verb, coco_class, obbox, pbbox) # minmax
+    # print(imgID, verb, coco_class, obbox, pbbox) # minmax
 
     img = Image.open(getIMG(imgID))
     draw = ImageDraw.Draw(img)
     draw.rectangle((obbox), outline=(255, 0, 0), width=3)
     draw.rectangle((pbbox), outline=(0, 0, 255), width=3)
     outter = getOutterPoints(obbox, pbbox)
-    print(outter)
     center = getCneterPoints(outter)
     draw.ellipse((center[0]-5, center[1]-5,  center[0]+5, center[1]+5), fill='red', outline='blue')
 
-    # plt.imshow(img)
-    # plt.show()
+    plt.imshow(img)
+    plt.show()
 
-    target_area = getTargetArea(img, outter)
+    target_area = getTargetArea(img, outter, target_size=(400,400),sample=5)
+
+    for i in target_area:
+        # print(i)
+        croped_img = img.crop(i)
+        plt.imshow(croped_img)
+        plt.show()
 
     # target = getTargetBound(center, img, target_size=400)
     # print(target)
@@ -195,11 +183,6 @@ for target in list(target_cats.itertuples()):
     # plt.imshow(img)
     # plt.show()
 
-    for i in target_area:
-        print(i)
-        # croped_img = img.crop(i)
-        # plt.imshow(croped_img)
-        # plt.show()
 
     # plt.imshow(croped_img)
     # plt.imshow(ret_img)
